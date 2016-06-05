@@ -1,6 +1,6 @@
 /*!
- * Flow v1.0.0 - A small JavaScript callbacks synchronizer
- * Copyright (c) Stas Granin - https://github.com/StasGranin/flow
+ * Flow.js v1.0.0 - A small JavaScript callbacks synchronizer
+ * Copyright (c) Stas Granin - https://github.com/StasGranin/Flow.js
  * License: MIT
  */
 
@@ -8,7 +8,7 @@
 {
 	var Flow = function (tasks, options)
 	{
-		var _this = this;
+		var _this = this; // For some strange reason UglifyJS doesn't mangle 'this', therefore we have to assign it to a variable to optimize minimized output.
 
 		_this._currentTaskIndex = 0;
 		_this._batch = 0;

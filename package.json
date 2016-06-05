@@ -1,7 +1,7 @@
 {
-	"name": "Flow",
+	"name": "flow-sync",
 	"version": "1.0.0",
-	"title": "Flow",
+	"title": "Flow.js",
 	"author":
     {
 		"name": "Stas Granin",
@@ -16,15 +16,15 @@
 	},
 	"main": "flow.min.js",
 	"description": "A small JavaScript callbacks synchronizer for the browser and Node JS. A powerful alternative to using Promises, Flow offers you greater control, parallel execution, cleaner code and consistency across platforms.",
-	"keywords": ["flow", "parallel", "callback", "synchronizer", "tiny", "queue"],
-	"homepage": "https://github.com/StasGranin/flow",
+	"keywords": ["flow", "flow-sync", "flow.js", "parallel", "callback", "synchronizer", "tiny", "queue"],
+	"homepage": "https://github.com/StasGranin/Flow.js",
 	"repository":
     {
 		"type": "git",
-		"url": "https://github.com/StasGranin/flow.git"
+		"url": "https://github.com/StasGranin/Flow.js.git"
 	},
 	"bugs":
     {
-		"url": "https://github.com/StasGranin/flow/issues"
+		"url": "https://github.com/StasGranin/Flow.js/issues"
 	}
 }
