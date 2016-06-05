@@ -1,6 +1,6 @@
-# Flow
-Flow is a small yet powerfull callback syncronizer for browsers and Node JS.
-A powerful alternative to Promise based structure, Flow offers you greater control, cleaner syntax and consistency across 
+# Flow.js
+Flow.js is a small yet powerful callback synchronizer for browsers and Node.js.
+A powerful alternative to Promise based structure, Flow.js offers you greater control, cleaner syntax and consistency across
 various platforms, all in a tiny package with virtually no overhead.
 
 
@@ -9,15 +9,16 @@ new Flow(
 [
     {fn: loadTemplate, success: parseTemplate},
     {fn: getUserData, success: processUserData},
-    {fn: rederUI, sync: true},
+    {fn: renderUI, sync: true},
     {fn: getUserAlbums, success: processUserAlbums},
     {fn: getAlbumImages, success: renderAlbumImages, sync: true}
 ]).execute();
 ```
 
 ## Contents
+* [Node.js installation and usage](#nodeInstallation)
 * [Tasks](#tasks)
-    * [Anatomy of a task](#anatomyOfTheTask)   
+    * [Anatomy of a task](#anatomyOfTheTask)
     * [Task properties](#taskProperties) 
         * [fn](#fn)
         * [flow](#flowProp)
@@ -39,12 +40,24 @@ new Flow(
 * [Contributors](#contributors)
 * [License](#license)
 
+## Node.js installation and usage <a name="nodeInstallation"></a>
+To use Flow.js in Node.js projects, install its [npm](https://www.npmjs.com/package/flow-sync) package.
 
-<br/>
+```bash
+npm install flow-sync
+```
+
+Usage:
+```javascript
+var Flow = require('flow-sync');
+
+new Flow(...);
+```
+
 ## Tasks <a name="tasks"></a>
 When creating a new Flow object you provide it with an `array` of tasks. 
 A task can be a function with callbacks (an AJAX call for example) or another sub-flow.
-Flow is not a queue - tasks in the flow will execute in **parallel** by [default](#sync). 
+Flow is not a queue - tasks in the flow will execute in **parallel** by [default](#sync).
 
 
 #### Anatomy of a task <a name="anatomyOfTheTask"></a>
@@ -57,18 +70,18 @@ Example:
 #### Task properties <a name="taskProperties"></a>
 
 | Property | Description | Accepts | Default |
-| --- | --- | --- | --- |
+|:--- |:--- |:--- |:--- |
 | [`fn`](#fn) | A function to be executed. | `function` | N/A |
 | [`flow`](#flowProp) | A sub-flow to be executed. If provided, `fn` will be ignored. | `new Flow()` | N/A |
 | [`success`](#success) | A callback function to execute when the task is to be completed. | `function` | Empty `function(){}` |
 | [`fail`](#fail) | A callback function to execute when if the task fails for any reason. Under default conditions executing `fail()` will stop the flow. | `function` | Empty `function(){}` |
 | [`sync`](#sync) | If set as `true` will cause the task to await the completion of all previous tasks in the flow before executing. | `boolean` | `false` or `true` if `defaultSync` options is used |
 | [`failRetries`](#failRetries) | The number of times to repeat the task in case of failing. | `integer` | `0` |
-| [`retryInterval`](#retryInterval) | An interval (in miliseconds) betwin retry attempts. Used in conjunction with `failRetries`. | `integer` or `function` | `0` |
+| [`retryInterval`](#retryInterval) | An interval (in milliseconds) between retry attempts. Used in conjunction with `failRetries`. | `integer` or `function` | `0` |
 | [`continueOnFail`](#continueOnFail) | If set as `true` the failing of the task will not cause the entire flow to fail. | `boolean` | `false` |
 
 
-</br>
+
 - **fn** <a name="fn"></a>
 
     > *Accepts:* `function(success, fail)`
@@ -120,7 +133,7 @@ Example:
     **Please note:** Unless stated [otherwise](#continueOnFail) execution of the `fail` function will cause the flow to stop and trigger the [`onFail`](#options) function.
     
     
-</br>
+
 - **flow** <a name="flowProp"></a>
     
     > *Accepts:* `new Flow()`
@@ -162,12 +175,14 @@ Example:
     ```
     
     
-</br>
+
 - **success** (optional) <a name="success"></a>
     
     > *Accepts:* `function(attributes)`
     
-    A callback function that is passed as the first parameter of the [`fn`](#fn) function of the task. Executing it will successfully finish the task and trigger the [`onProgress`](#options) function, unless `new Error()` is returned. This function is optional (if not defined, an empty function will be passed instead) and can receive any number of parameters.
+    A callback function that is passed as the first parameter of the [`fn`](#fn) function of the task.
+    Executing it will successfully finish the task and trigger the [`onProgress`](#options) function, unless `new Error()` is returned.
+    This function is optional (if not defined, an empty function will be passed instead) and can receive any number of parameters.
 
     ```javascript
     function myFunction(success)
@@ -191,18 +206,19 @@ Example:
     // Log: 
     // Completed  1  true
     ```
-
     
-    * Returning `new Error()` by the function is equal to executing the [`fail`](#fail) function.
-    * The [`onProgress`](#options) function will receive anything returned by `success`.
+    - Returning `new Error()` by the function is equal to executing the [`fail`](#fail) function.
+    - The [`onProgress`](#options) function will receive anything returned by `success`.
   
     
-</br>    
+
 - **fail** (optional) <a name="fail"></a>
 
     > *Accepts:* `function(error)`
     
-    A callback function that is passed as the second parameter of the [`fn`](#fn) function of the task. Executing it will cause the task to fail and under default conditions fail the flow and trigger the [`onFail`](#options) function. This function is optional. Any result returned by this function will be passed to the `onFail` function.
+    A callback function that is passed as the second parameter of the [`fn`](#fn) function of the task.
+    Executing it will cause the task to fail and under default conditions fail the flow and trigger the [`onFail`](#options) function.
+    This function is optional. Any result returned by this function will be passed to the `onFail` function.
     
     ```javascript
     function myFunction(success, fail)
@@ -228,14 +244,13 @@ Example:
     ```
   
   
-</br>    
+
 - **sync** (optional) <a name="sync"></a>
 
     > *Accepts:* `boolean`
     >
     > *Default:* `false` or `true` if [`defaultSync`](#defaultSync) options is used.
-    
-    
+
     When the task is set as 'sync', its execution will be delayed until all the tasks before it had completed.
     
     ```javascript
@@ -295,15 +310,17 @@ Example:
     ```
     
     
-</br>    
+
 - **failRetries** (optional) <a name="failRetries"></a>
 
     > *Accepts:* `integer`
     >
     > *Default:* `0`
     
-    
-    When we want to give the task a second chance to complete successfully after failing,  we can use `failRetries` to define how many times we want it to retry the task. It is important to note that the number represents a number of times to retry the task *after* the task has failed the first time (i.e. setting `failRetries: 2` will cause the task to execute additional two times).
+    When we want to give the task a second chance to complete successfully after failing,
+    we can use `failRetries` to define how many times we want it to retry the task.
+    It is important to note that the number represents a number of times to retry the task *after* the task has failed the first time
+    (i.e. setting `failRetries: 2` will cause the task to execute additional two times).
     
     ```javascript
     var num = 0;
@@ -346,17 +363,17 @@ Example:
     ```
     
     
-</br>    
+
 - **retryInterval** (optional) <a name="retryInterval"></a>
 
-    > *Accepts:* `integer` or `function`
-    >
-    > *Default:* `0`
-    
-    
-   Used in conjunction with [`failRetries`](#failRetries), we can delay the execution of another retry by a defined amount of milliseconds. We can instead pass a function to dynamically modify the delay time (this function must return a number).
+	> *Accepts:* `integer` or `function`
+	>
+	> *Default:* `0`
+
+	Used in conjunction with [`failRetries`](#failRetries), we can delay the execution of another retry by a defined amount of milliseconds.
+	We can instead pass a function to dynamically modify the delay time (this function must return a number).
    
-   ```javascript
+    ```javascript
     var num = 0;
     
     function myFunction(success, fail)
@@ -406,19 +423,16 @@ Example:
     ```
     
     
-</br>    
+
 - **continueOnFail** (optional) <a name="continueOnFail"></a>
 
     > *Accepts:* `boolean`
     >
     > *Default:* `false`
     
-    
     Setting this as `true` will not cause a failed task to fail the entire flow. If ['failRetries'](#failRetries) is used, the task will still attempt to perform retries.
     
-    
     ```javascript
-    
     function test1(success)
     {
         setTimeout(function()
@@ -476,7 +490,7 @@ Example:
     // Test3 complete
     ```
     
-<br/>    
+
 ## Options <a name="options"></a>
 Options is the second parameter you can provide to the Flow constructor to define general callbacks and certain behaviors of your flow.
 ```javascript
@@ -498,19 +512,19 @@ new Flow([...],
 ```
 
 | Option | Description | Accepts | Default |
-| --- | --- | --- | --- |
+|:--- |:--- |:--- |:--- |
 | [`onComplete`](#onComplete) | A callback function to be executed after each successful execution of the flow. | `function` | N/A |
 | [`onFail`](#onFail) | A callback function to be executed each time the entire flow fails. If the [`fail`](#fail) function of the failed task returns a value, this value will be passed to the `onFail` function | `function` | N/A |
 | [`onProgress`](#onProgress) |  A callback function that will execute each time a task completes successfully. If the [`success`](#success) function of the task returns any value except `new Error()`, this value will be passed to the `onProgress` function. | `function` | N/A |
 | [`defaultSync`](#defaultSync) | If set as `true`, `defaultSync` will cause all tasks to become [sync](#sync) by default. | `boolean` | `false` |
 
 
-<br/>
+
 ## Methods <a name="methods"></a>
 Methods are functions used to execute, stop or add tasks to the flow. Methods can be chained.
 
 | Method | Description | Parameters |
-| --- | --- | --- |
+|:--- |:--- |:--- |
 | [`execute()`](#execute) | Starts the execution of the flow. | Accepts two optional functions for complete and fail callbacks. |
 | [`push(tasks)`](#push) | Pushes tasks to the end of the task list. | Can accept a single task object or an array of tasks. |
 | [`pushAndExecute(tasks)`](#pushAndExecute) | A shorthand method, equals `flow.push(tasks).execute()`. | Accepts tasks as a first parameter and optional callbacks as second and third. |
@@ -523,7 +537,9 @@ Methods are functions used to execute, stop or add tasks to the flow. Methods ca
 
     This method starts the execution of the flow.
     
-    **Please note:** The optional `complete` and `fail` callbacks will execute in addition to the `onComplete` and `onError` functions we define in the [options]('#options'). The main difference is that `execute(complete, fail)` callbacks will execute only once, while the ones we set in the options will execute every time the flow completes or fails.
+    **Please note:** The optional `complete` and `fail` callbacks will execute in addition to the `onComplete`
+    and `onError` functions we define in the [options]('#options'). The main difference is that `execute(complete, fail)`
+    callbacks will execute only once, while the ones we set in the options will execute every time the flow completes or fails.
     
     ```javascript
     function onExecuteComplete()
@@ -546,10 +562,12 @@ Methods are functions used to execute, stop or add tasks to the flow. Methods ca
     // Flow execution was completed
     ```
    
-   **Please note:** It is not advised to use `execute()` on a flow that was stopped by the [`stop()`](#stop) method or by previously [failing](#fail). This is because there is no reliable way to determine the exact stopping point in the tasks list. Use `execute()` only on flows that were completed and after [pushing](#push) additional tasks, otherwise use [`restart()`](#restart).
+   **Please note:** It is not advised to use `execute()` on a flow that was stopped by the [`stop()`](#stop) method or by previously [failing](#fail).
+   This is because there is no reliable way to determine the exact stopping point in the tasks list.
+   Use `execute()` only on flows that were completed and after [pushing](#push) additional tasks, otherwise use [`restart()`](#restart).
    
   
-<br/>    
+
 - **push()** <a name="push"></a>
 
     > *Required:* a task `object` or `array` of tasks
@@ -568,7 +586,7 @@ Methods are functions used to execute, stop or add tasks to the flow. Methods ca
     ```
    
   
-<br/>    
+
 - **pushAndExecute()** <a name="pushAndExecute"></a>
 
     > *Required:* a task `object` or `array` of tasks
@@ -578,13 +596,13 @@ Methods are functions used to execute, stop or add tasks to the flow. Methods ca
     This is a shorthand method, equals `flow.push(...).execute()`.
    
     
-<br/>    
+
 - **stop()** <a name="stop"></a>
 
     This method will stop the execution of the flow and prevent any currently executing tasks from executing their callbacks.
 
 
-<br/>      
+
 - **restart()** <a name="restart"></a>
 
     > *Optional:* `complete` and `fail` callback functions
@@ -592,7 +610,7 @@ Methods are functions used to execute, stop or add tasks to the flow. Methods ca
     Use this method to restart the flow from the first task.
     
     
-<br/>
+
 ## Examples <a name="examples"></a>
 - **Simple images pre-loading** <a name="imagesPreloading"></a>
 
@@ -650,12 +668,12 @@ Methods are functions used to execute, stop or add tasks to the flow. Methods ca
     ```    
 
     
-<br/>
+
 ## Contributors <a name="contributors"></a>
 Special tanks to [Shane Goodson](https://github.com/Shane-IL) for helping me write this README and testing.
 
     
-<br/>
+
 ## License <a name="license"></a>
-This project is licensed under the MIT License - see the [LICENSE.txt](https://github.com/StasGranin/flow/blob/master/LICENSE.txt) file for details.
+This project is licensed under the MIT License - see the [LICENSE.txt](https://github.com/StasGranin/Flow.js/blob/master/LICENSE.txt) file for details.
   

@@ -1,5 +1,5 @@
 /*!
- * Flow.js v1.0.0 - A small JavaScript callbacks synchronizer
+ * Flow.js v1.0.5 - A small JavaScript callbacks synchronizer
  * Copyright (c) Stas Granin - https://github.com/StasGranin/Flow.js
  * License: MIT
  */
@@ -289,7 +289,7 @@
 	function _noop() {} // Empty function
 
 
-	if (typeof exports !== 'undefined') // Node JS
+	if (typeof exports !== 'undefined') // Node.js
 	{
 		if (typeof module !== 'undefined' && module.exports)
 		{

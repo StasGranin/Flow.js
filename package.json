@@ -1,6 +1,6 @@
 {
 	"name": "flow-sync",
-	"version": "1.0.0",
+	"version": "1.0.5",
 	"title": "Flow.js",
 	"author":
     {
@@ -14,8 +14,8 @@
 		"grunt-cli": "~0.1.9",
 		"grunt-contrib-uglify": "*"
 	},
-	"main": "flow.min.js",
-	"description": "A small JavaScript callbacks synchronizer for the browser and Node JS. A powerful alternative to using Promises, Flow offers you greater control, parallel execution, cleaner code and consistency across platforms.",
+	"main": "flow.js",
+	"description": "A small JavaScript callbacks synchronizer for the browser and Node.js. A powerful alternative to using Promises, Flow.js offers you greater control, parallel execution, cleaner code and consistency across platforms.",
 	"keywords": ["flow", "flow-sync", "flow.js", "parallel", "callback", "synchronizer", "tiny", "queue"],
 	"homepage": "https://github.com/StasGranin/Flow.js",
 	"repository":
