@@ -85,7 +85,7 @@
 				fn = task.fn;
 			}
 
-			fn(function() // Success callback
+			fn && fn(function() // Success callback
 			{
 				_this._successCallback(Array.prototype.slice.call(arguments, 0), task, retry, invokingBatch);
 			}, function() // Fail callback
