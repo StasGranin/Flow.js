@@ -51,7 +51,7 @@ Usage:
 ```javascript
 var Flow = require('flow-sync');
 
-new Flow(...);
+new Flow([...]).execute();
 ```
 
 ## Tasks <a name="tasks"></a>
@@ -95,14 +95,24 @@ Example:
             success('Completed', 1, true);
         }, 1000);
     }
+
+    function myOtherFunction(success)
+    {
+        setTimeout(function()
+        {
+            success('Completed', {a: 1, b: 2});
+        }, 2000);
+    }
     
     new Flow(
     [
-        {fn: myFunction}
-    ]);
+        {fn: myFunction},
+        {fn: myOtherFunction},
+    ]).execute();
     
     // Log: 
     // Completed 1 true
+    // Completed {a: 1, b: 2}
     ```
     
     As we can see from the example above, after 1000 milliseconds we execute the `success` function with attributes we want it to receive.
@@ -125,7 +135,7 @@ Example:
     new Flow(
     [
         {fn: getUserAlbums}
-    ]);
+    ]).execute();
     ```
     
     In this example we assign our `success` and `fail` functions as parameters of the `$.ajax()` function. As stated above, the `fail` function is optional.
@@ -167,7 +177,7 @@ Example:
     new Flow(
     [
         {flow: subFlow, success: subFlowSuccess}
-    ]);
+    ]).execute();
     
     // Log: 
     // Completed  1  true
@@ -201,7 +211,7 @@ Example:
     new Flow(
     [
         {fn: myFunction, success: myFunctionSuccess}
-    ]);
+    ]).execute();
     
     // Log: 
     // Completed  1  true
@@ -354,7 +364,7 @@ Example:
     [
         // Give the task another 2 attempts to succeed
         {fn: myFunction, success: logSuccess, fail: logErrors, failRetries: 2} 
-    ]);
+    ]).execute();
     
     // Log: 
     // 1 is not divisible by 3
@@ -410,7 +420,7 @@ Example:
     [
         // Dynamically set the retry interval
         {fn: myFunction, success: logSuccess, fail: logErrors, failRetries: 2, retryInterval: setRetryInterval} 
-    ]);
+    ]).execute();
     
     // Log: 
     // 1 is not divisible by 3
