@@ -1,5 +1,5 @@
 /*!
- * Flow.js v1.0.5 - A small JavaScript callbacks synchronizer
+ * Flow.js v1.1.0 - A small JavaScript callbacks synchronizer
  * Copyright (c) Stas Granin - https://github.com/StasGranin/Flow.js
  * License: MIT
  */
@@ -16,15 +16,18 @@
 		_this._registeredSyncTask = null;
 		_this._isAsyncRegistered = false;
 		_this._isFlowRunning = false;
-		_this._isFlowComplete = false;
+        _this._tasksCounter = 0;
+        _this._taskIdCounter = 0;
 
-		_this._tasks = tasks || [];
+		_this._tasks = [];
 		_this._options = options = options || {};
 
 		options.defaultSync = options.defaultSync || false;
 		options.onProgress = options.onProgress || _noop;
 		options.onFail = options.onFail || _noop;
 		options.onComplete = options.onComplete || _noop;
+
+        _this._pushTasks(tasks);
 	};
 
 	Flow.prototype =
@@ -39,11 +42,6 @@
 			if (_this._isFlowRunning && invokingBatch === _this._batch)
 			{
 				task = _this._tasks[++_this._currentTaskIndex];
-
-				if (_this._currentTaskIndex === _this._tasks.length - 1)
-				{
-					_this._isFlowComplete = true;
-				}
 
 				if (task)
 				{
@@ -66,7 +64,14 @@
 			var isRetrying = retry !== undefined;
 			var fn;
 
-			!isRetrying && _this._syncCounter++;
+			if (task.state === 'skipped')
+            {
+                _this._processNext(invokingBatch);
+                _this._sync(invokingBatch);
+                return;
+            }
+
+            !isRetrying && _this._syncCounter++;
 
 			if (retry === undefined)
 			{
@@ -85,7 +90,9 @@
 				fn = task.fn;
 			}
 
-			fn && fn(function() // Success callback
+            task.state = 'executing';
+
+			fn(function() // Success callback
 			{
 				_this._successCallback(Array.prototype.slice.call(arguments, 0), task, retry, invokingBatch);
 			}, function() // Fail callback
@@ -102,7 +109,7 @@
 			var success = task.success || _noop;
 			var result;
 
-			if (_this._isFlowRunning && invokingBatch === _this._batch)
+			if (_this._isFlowRunning && invokingBatch === _this._batch && task.state !== 'skipped')
 			{
 				result = success.apply(null, args);
 
@@ -113,8 +120,9 @@
 					_this._failCallback(args, task, retry, invokingBatch);
 				}
 				else
-				{
-					_this._options.onProgress(result);
+                {
+                    task.state = 'succeeded';
+                    _this._options.onProgress(result);
 
 					_this._sync(invokingBatch);
 				}
@@ -128,7 +136,7 @@
 			var error;
 			var retryInterval = task.retryInterval;
 
-			if (_this._isFlowRunning && invokingBatch === _this._batch)
+			if (_this._isFlowRunning && invokingBatch === _this._batch && task.state !== 'skipped')
 			{
 				error = fail.apply(null, args);
 
@@ -153,13 +161,15 @@
 				}
 				else
 				{
-					if (task.continueOnFail)
+                    task.state = 'failed';
+
+				    if (task.continueOnFail)
 					{
 						_this._sync(invokingBatch);
 					}
 					else
 					{
-						_this._isFlowRunning = false;
+					    _this._isFlowRunning = false;
 						_this._options.onFail(error);
 						_this.executeFail && _this.executeFail(error);
 					}
@@ -175,22 +185,25 @@
 			{
 				if (_this._isFlowRunning && invokingBatch === _this._batch)
 				{
-					_this._syncCounter--;
+				    if (_this._tasksCounter === _this._tasks.length-1)
+                    {
+                        _this._flowComplete();
+                    }
+                    else
+                    {
+                        _this._tasksCounter++;
+                        _this._syncCounter--;
 
-					if (_this._syncCounter === 0)
-					{
-						if (_this._isAsyncRegistered)
-						{
-							_this._isAsyncRegistered = false;
+                        if (_this._syncCounter === 0)
+                        {
+                            if (_this._isAsyncRegistered)
+                            {
+                                _this._isAsyncRegistered = false;
 
-							_this._executeTask(_this._registeredSyncTask, undefined, invokingBatch);
-						}
-
-						if (_this._isFlowComplete) // end of tasks
-						{
-							_this._flowComplete();
-						}
-					}
+                                _this._executeTask(_this._registeredSyncTask, undefined, invokingBatch);
+                            }
+                        }
+                    }
 				}
 			}, 0);
 		},
@@ -204,6 +217,27 @@
 			_this._options.onComplete();
 			_this.executeComplete && _this.executeComplete();
 		},
+
+        _pushTasks: function(tasks)
+        {
+            var _this = this;
+
+            if (tasks instanceof Array === false)
+            {
+                tasks = [tasks];
+            }
+
+
+            for (var i=0, l=tasks.length; i<l; i++)
+            {
+                if (!tasks[i].id)
+                {
+                    tasks[i].id = ++_this._taskIdCounter;
+                }
+
+                _this._tasks.push(tasks[i]);
+            }
+        },
 
 		_defaultFailCallback: function(error)
 		{
@@ -221,7 +255,7 @@
 			{
 				_this._batch++;
 				_this._currentTaskIndex--;
-				_this._isFlowComplete = false;
+                _this._tasksCounter = 0;
 				_this._isFlowRunning = true;
 				_this.executeComplete = success;
 				_this.executeFail = fail;
@@ -241,7 +275,7 @@
 			_this._syncCounter = 0;
 			_this._registeredSyncTask = null;
 			_this._isAsyncRegistered = false;
-			_this._isFlowComplete = false;
+            _this._tasksCounter = 0;
 
 			_this.execute(success, fail);
 
@@ -258,18 +292,38 @@
 			return _this;
 		},
 
+        skipTask: function(taskId)
+        {
+            var _this = this;
+            var task;
+
+            for (var i=0, l=_this._tasks.length; i<l; i++)
+            {
+                task = _this._tasks[i];
+
+                if (task.id === taskId)
+                {
+                    if (task.state === 'executing')
+                    {
+                        task.state = 'skipped';
+                        _this._processNext(_this._batch);
+                        _this._sync(_this._batch);
+                    }
+                    else
+                    {
+                        task.state = 'skipped';
+                    }
+
+                    break;
+                }
+            }
+        },
+
 		push: function(tasks)
 		{
 			var _this = this;
 
-			if (tasks instanceof Array)
-			{
-				Array.prototype.push.apply(_this._tasks, tasks);
-			}
-			else
-			{
-				_this._tasks.push(tasks);
-			}
+			_this._pushTasks(tasks);
 
 			return _this;
 		},
@@ -278,7 +332,7 @@
 		{
 			var _this = this;
 
-			_this.push(tasks);
+            _this._pushTasks(tasks);
 			_this.execute(success, fail);
 
 			return _this;
@@ -289,7 +343,7 @@
 	function _noop() {} // Empty function
 
 
-	if (typeof exports !== 'undefined') // Node.js
+    if (typeof exports !== 'undefined') // Node.js
 	{
 		if (typeof module !== 'undefined' && module.exports)
 		{
@@ -300,13 +354,14 @@
 	}
 	else // Browser
 	{
-		if (this.Flow)
-		{
-			throw new Error('Flow variable is already assigned');
-		}
-		else
-		{
-			this.Flow = Flow;
-		}
+        if (this.Flow)
+        {
+            throw new Error('Flow variable is already assigned');
+        }
+        else
+        {
+            this.Flow = Flow;
+        }
 	}
+
 }.call(this));
